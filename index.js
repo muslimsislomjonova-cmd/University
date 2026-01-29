@@ -1,4 +1,5 @@
-const API_URL = "http://universities.hipolabs.com/search?country=";
+const API_URL = "https://api.api-ninjas.com/v1/universities?country=";
+const API_KEY = "LFt5KGqBsPPKnQXPdMU1LUGIH0BbVzWAwJoejkvY";
 
 const universitiesEl = document.getElementById("universities");
 const searchBtn = document.getElementById("searchBtn");
@@ -6,12 +7,11 @@ const countryInput = document.getElementById("countryInput");
 const loadingEl = document.getElementById("loading");
 const messageEl = document.getElementById("message");
 
-
 getUniversities("Uzbekistan");
 
 searchBtn.addEventListener("click", () => {
   const country = countryInput.value.trim();
-  if (country !== "") {
+  if (country) {
     getUniversities(country);
   }
 });
@@ -22,7 +22,16 @@ async function getUniversities(country) {
   loadingEl.classList.remove("hidden");
 
   try {
-    const response = await fetch(API_URL + country);
+    const response = await fetch(API_URL + country, {
+      headers: {
+        "X-Api-Key": API_KEY
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error("API error");
+    }
+
     const data = await response.json();
 
     if (data.length === 0) {
@@ -32,7 +41,7 @@ async function getUniversities(country) {
 
     renderUniversities(data);
   } catch (error) {
-    messageEl.textContent = "Error loading";
+    messageEl.textContent = "Error";
   } finally {
     loadingEl.classList.add("hidden");
   }
@@ -46,7 +55,11 @@ function renderUniversities(list) {
     card.innerHTML = `
       <h3>${uni.name}</h3>
       <p><strong>Country:</strong> ${uni.country}</p>
-      <a href="${uni.web_pages[0]}" target="_blank">Visit website</a>
+      ${
+        uni.web_pages?.length
+          ? `<a href="${uni.web_pages[0]}" target="_blank">Visit website</a>`
+          : ""
+      }
     `;
 
     universitiesEl.appendChild(card);
